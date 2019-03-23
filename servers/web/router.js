@@ -8,8 +8,8 @@ const router = new express.Router();
 router.route('/')
   .get((request, response) =>
     Promise.all([
-      gamesClient.fetch({ state: 'pending', limit: 3, order: 'asc' }),
-      gamesClient.fetch({ state: 'final', limit: 3, order: 'desc' }),
+      gamesClient.fetch(request.id, { state: 'pending', limit: 3, order: 'asc' }),
+      gamesClient.fetch(request.id, { state: 'final', limit: 3, order: 'desc' }),
     ]).then(([pendingFetch, finalFetch]) => [
       pendingFetch.body,
       finalFetch.body,
@@ -31,7 +31,7 @@ router.param('game_id', async (request, response, next, id) => {
 
 router.route('/games/:game_id')
   .get(async (request, response, next) => {
-    if (!request.game){
+    if (!request.game) {
       return next();
     }
     const { body: rules } = await gamesClient.rules();

@@ -3,9 +3,13 @@ const logger = require('./logger');
 
 //const format = 'combined';
 //const format = 'common';
-const format = 'dev';
+//const format = 'dev';
 //const format = 'short';
 //const format = 'tiny';
+const format = ':requestId :method :url :status :response-time ms';
+
+morgan.token('requestId', request => request.id);
+
 
 const options = {
   stream: {

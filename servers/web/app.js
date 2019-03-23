@@ -4,8 +4,11 @@ const playersClient = require('./lib/playersClient')(config.players);
 const path = require('path');
 const session = require('./session');
 const requestLogger = require('../shared/lib/requestLogger');
+const expressRequestId = require('express-request-id')();
 
 const app = express();
+
+app.use(expressRequestId);
 
 app.set('x-powered-by', false);
 
@@ -31,7 +34,7 @@ app.use(async (request, response, next) => {
   if (request.session.playerId) {
     return next();
   }
-  const result = await playersClient.create();
+  const result = await playersClient.create(request.id);
   request.session.playerId = result.body.id;
   return next();
 });
@@ -43,10 +46,10 @@ app.use(requestLogger);
 
 app.use(require('./router'));
 
-app.use((request,response) => {
-  console.warn(new Date().toISOString(),request.method, request.originalUrl, '404');
+app.use((request, response) => {
+  console.warn(new Date().toISOString(), request.method, request.originalUrl, '404');
   return response.status(404).render('404', {
-      title: '404',
+    title: '404',
   });
 });
 
@@ -54,10 +57,10 @@ app.use((error, request, response, next) => {
   if (response.headersSent) {
     return next(error);
   }
-    console.error(error);
-    return response.status(500).render('500', {
-      title: '500',
-    });
+  console.error(error);
+  return response.status(500).render('500', {
+    title: '500',
+  });
 });
 
 module.exports = app;
