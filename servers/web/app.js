@@ -52,4 +52,14 @@ app.use((request,response) => {
   });
 });
 
+app.use((error, request, response, next) => {
+  if (response.headersSent) {
+    return next(error);
+  }
+    console.error(error);
+    return response.status(500).render('500', {
+      title: '500',
+    });
+});
+
 module.exports = app;
