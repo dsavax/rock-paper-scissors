@@ -20,11 +20,11 @@ router.route('/')
     })));
 
 router.route('/games')
-  .post((request, response) => gamesClient.create(request.session.playerId)
+  .post((request, response) => gamesClient.create(request.id, request.session.playerId)
     .then(result => response.redirect(`/games/${result.body.id}`)));
 
 router.param('game_id', async (request, response, next, id) => {
-  const result = await gamesClient.get(id);
+  const result = await gamesClient.get(request.id, id);
   request.game = result.body;
   next();
 });
@@ -34,7 +34,7 @@ router.route('/games/:game_id')
     if (!request.game) {
       return next();
     }
-    const { body: rules } = await gamesClient.rules();
+    const { body: rules } = await gamesClient.rules(request.id);
 
     const messages = [];
     if (request.session.message) {
@@ -62,7 +62,7 @@ router.route('/games/:game_id/choice')
       body.player2choice = request.body.choice;
     }
 
-    const result = await gamesClient.update(request.game.id, body);
+    const result = await gamesClient.update(request.id, request.game.id, body);
     if (result.body.state === 'pending' && result.body.player1choice !== null && result.body.player2choice !== null) {
       return response.redirect(307, `/games/${result.body.id}/judge`);
     }
@@ -72,7 +72,7 @@ router.route('/games/:game_id/choice')
 router.route('/games/:game_id/join')
   .post(async (request, response, next) => {
     if (isNull(request.game.player2id)) {
-      const result = await gamesClient.update(request.game.id, {
+      const result = await gamesClient.update(request.id, request.game.id, {
         player2id: request.session.playerId,
       });
       return response.redirect(`/games/${result.body.id}`);
@@ -82,7 +82,7 @@ router.route('/games/:game_id/join')
 
 router.route('/games/:game_id/judge')
   .post(async (request, response) => {
-    const result = await gamesClient.judge(request.game.id);
+    const result = await gamesClient.judge(request.id, request.game.id);
     const game = result.body;
     if (isNull(game.playerWinnerId) && game.state === 'final') {
       request.session.message = { level: 'warning', body: 'You have tied.' };
