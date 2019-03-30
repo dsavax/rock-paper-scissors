@@ -2,6 +2,7 @@ const config = require('./config');
 const express = require('express');
 const isNull = require('lodash/isNull');
 const gamesClient = require('./lib/gamesClient')(config.games);
+const logger = require('../shared/lib/logger');
 
 const router = new express.Router();
 
@@ -24,8 +25,19 @@ router.route('/games')
     .then(result => response.redirect(`/games/${result.body.id}`)));
 
 router.param('game_id', async (request, response, next, id) => {
+  const timer = logger.startTimer();
   const result = await gamesClient.get(request.id, id);
   request.game = result.body;
+  
+  // TODO: Solve delay output to console  . Now it goes only to combined.log.
+  // See https://www.npmjs.com/package/winston
+  // or try https://www.npmjs.com/package/winston-timer
+
+  let info = {
+    label: "route games delay saved to file TODO solve console output",
+    message: `${request.id} getGameByID #${id}`,
+  };
+  timer.done(info);
   next();
 });
 
