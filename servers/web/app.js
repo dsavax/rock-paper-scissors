@@ -57,7 +57,8 @@ app.use((error, request, response, next) => {
   if (response.headersSent) {
     return next(error);
   }
-  console.error(error);
+  //console.error(error);
+  winston.error(`${err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
   return response.status(500).render('500', {
     title: '500',
   });
